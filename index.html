@@ -624,6 +624,10 @@ function checkPw() {
 }
 document.getElementById('pw').addEventListener('keydown', e => { if (e.key === 'Enter') checkPw(); });
 
-// run once to seed displays (gate hides it)
-update();
+// seed displays after DOM is fully ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', update);
+} else {
+  update();
+}
 </script>
