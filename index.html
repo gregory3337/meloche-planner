@@ -358,16 +358,16 @@ footer {
       <div class="fund-card">
         <div class="fund-row">
           <div>
-            <div class="fund-name">EP2 Promissory Note <span class="prom-badge">13% p.a.</span></div>
+            <div class="fund-name">EP2 Promissory Note <span class="prom-badge">10% p.a.</span></div>
             <div class="fund-detail">$250,000 principal · Acct 1199</div>
           </div>
           <div style="text-align:right">
-            <div class="fund-dist">$2,708.33 / mo</div>
+            <div class="fund-dist">$1,958.33 / mo</div>
             <div class="fund-dist-label">Fixed — cash only</div>
           </div>
         </div>
         <div style="margin-top:10px; padding: 8px 12px; background: var(--accent-m-light); border-radius:6px; font-size:.75rem; color:var(--fg-2);">
-          Promissory note interest is paid as cash. No reinvestment election applies.
+          Promissory note interest is paid as cash. No reinvestment election applies. Rate reset to 10% p.a. effective July 1, 2026; current monthly reflects a blended rate adjustment for the transition period.
         </div>
       </div>
 
@@ -488,7 +488,7 @@ const FUNDS = {
   bCbig:  { id:'b-cbig',  total:72.91,   defaultCash:0,   fixed:false },
   bCbre:  { id:'b-cbre',  total:86.80,   defaultCash:0,   fixed:false },
   mCbig:  { id:'m-cbig',  total:3803.65, defaultCash:100, fixed:false }, // currently cash
-  mProm:  {                total:2708.33, defaultCash:100, fixed:true  }, // always cash
+  mProm:  {                total:1958.33, defaultCash:100, fixed:true  }, // always cash
   mCbre1: { id:'m-cbre1', total:2903.39, defaultCash:0,   fixed:false },
   mCbig2: { id:'m-cbig2', total:2000.00, defaultCash:0,   fixed:false },
   mCbre2: { id:'m-cbre2', total:142.91,  defaultCash:0,   fixed:false },
@@ -527,7 +527,7 @@ function update() {
   // Michael
   const mCbigDrip  = 3803.65 * sliderVal('m-cbig');
   const mCbigCash  = 3803.65 - mCbigDrip;
-  const mPromCash  = 2708.33; // fixed
+  const mPromCash  = 1958.33; // fixed
   const mCbre1Drip = 2903.39 * (1 - sliderVal('m-cbre1'));
   const mCbre1Cash = 2903.39 - mCbre1Drip;
   const mCbig2Drip = 2000.00 * (1 - sliderVal('m-cbig2'));
