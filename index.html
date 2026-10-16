@@ -240,7 +240,7 @@ footer {
   <div class="summary-inner">
     <div class="sum-tile">
       <div class="sum-label">Household Market Value</div>
-      <div class="sum-val" id="hh-mv">$1,570,876</div>
+      <div class="sum-val" id="hh-mv">—</div>
       <div class="sum-sub">All eligible funds</div>
     </div>
     <div class="sum-tile">
@@ -564,6 +564,7 @@ function update() {
   const hhTotal = hhCash + hhDrip;
   const hhYield = (hhCash * 12 / TOTAL_MV * 100).toFixed(2) + '%';
 
+  document.getElementById('hh-mv').textContent     = fmt(TOTAL_MV);
   document.getElementById('hh-cash').textContent   = fmt(hhCash);
   document.getElementById('hh-drip').textContent   = fmt(hhDrip);
   document.getElementById('hh-yield').textContent  = hhYield;
