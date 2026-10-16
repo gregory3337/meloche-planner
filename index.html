@@ -1,0 +1,629 @@
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>Meloche Distribution Planner</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600&display=swap">
+<style>
+/* === TOKENS === */
+/* Layout: two-silo side-by-side on desktop, stacked on mobile; dark-primary palette */
+:root {
+  --bg: #f7f5f0;
+  --bg-2: #eeeae1;
+  --surface: #ffffff;
+  --border: #ddd8cc;
+  --fg: #1a1814;
+  --fg-2: #5a5650;
+  --fg-3: #9a968f;
+  --accent-b: #2c5f8a;     /* Brenda — slate blue */
+  --accent-b-light: #e8f0f8;
+  --accent-m: #7a4a2a;     /* Michael — warm sienna */
+  --accent-m-light: #f5ede6;
+  --gold: #b89a5a;
+  --cash: #3a7a3a;
+  --cash-light: #e8f4e8;
+  --reinvest: #2c5f8a;
+  --reinvest-light: #e8f0f8;
+  --track: #ddd8cc;
+  --thumb: #b89a5a;
+  --shadow: 0 2px 12px rgba(26,24,20,.08);
+  --radius: 10px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #141210;
+    --bg-2: #1e1c18;
+    --surface: #252220;
+    --border: #38342c;
+    --fg: #f0ece4;
+    --fg-2: #a09890;
+    --fg-3: #6a6258;
+    --accent-b: #5a9fd4;
+    --accent-b-light: #1a2d3d;
+    --accent-m: #c4845a;
+    --accent-m-light: #2d1e14;
+    --gold: #c8aa6a;
+    --cash: #5aaa5a;
+    --cash-light: #162416;
+    --reinvest: #5a9fd4;
+    --reinvest-light: #1a2d3d;
+    --track: #38342c;
+    --shadow: 0 2px 12px rgba(0,0,0,.3);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #141210; --bg-2: #1e1c18; --surface: #252220; --border: #38342c;
+  --fg: #f0ece4; --fg-2: #a09890; --fg-3: #6a6258;
+  --accent-b: #5a9fd4; --accent-b-light: #1a2d3d;
+  --accent-m: #c4845a; --accent-m-light: #2d1e14;
+  --gold: #c8aa6a; --cash: #5aaa5a; --cash-light: #162416;
+  --reinvest: #5a9fd4; --reinvest-light: #1a2d3d;
+  --track: #38342c; --shadow: 0 2px 12px rgba(0,0,0,.3);
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0;
+  min-height: 100%;
+}
+
+/* === GATE === */
+#gate {
+  position: fixed; inset: 0; z-index: 100;
+  background: var(--bg);
+  display: flex; align-items: center; justify-content: center;
+}
+.gate-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 48px 40px;
+  width: min(400px, 90vw);
+  box-shadow: var(--shadow);
+  text-align: center;
+}
+.gate-wordmark { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 1.6rem; font-weight: 400; letter-spacing: .03em; color: var(--fg); margin-bottom: 4px; }
+.gate-wordmark em { font-style: italic; color: var(--gold); }
+.gate-sub { font-size: .75rem; letter-spacing: .12em; text-transform: uppercase; color: var(--fg-3); margin-bottom: 36px; }
+.gate-label { font-size: .7rem; letter-spacing: .1em; text-transform: uppercase; color: var(--fg-2); margin-bottom: 8px; display: block; text-align: left; }
+.gate-input {
+  width: 100%; padding: 12px 14px; border-radius: 7px;
+  border: 1px solid var(--border); background: var(--bg);
+  color: var(--fg); font-family: inherit; font-size: .95rem;
+  outline: none; transition: border-color .2s;
+}
+.gate-input:focus { border-color: var(--gold); }
+.gate-btn {
+  margin-top: 16px; width: 100%; padding: 13px;
+  background: var(--fg); color: var(--bg);
+  border: none; border-radius: 7px; font-family: inherit;
+  font-size: .85rem; font-weight: 500; letter-spacing: .06em;
+  text-transform: uppercase; cursor: pointer; transition: opacity .15s;
+}
+.gate-btn:hover { opacity: .85; }
+.gate-err { margin-top: 12px; font-size: .8rem; color: #c0392b; min-height: 18px; }
+
+/* === HEADER === */
+header {
+  background: var(--fg);
+  color: var(--bg);
+  padding-block: 0;
+  padding-left: max(24px, env(safe-area-inset-left, 0px));
+  padding-right: max(24px, env(safe-area-inset-right, 0px));
+}
+.header-inner { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-block: 18px; max-width: 1200px; margin: 0 auto; }
+.header-wordmark { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 1.45rem; font-weight: 400; letter-spacing: .04em; }
+.header-wordmark em { font-style: italic; color: var(--gold); }
+.header-tag { font-size: .68rem; letter-spacing: .14em; text-transform: uppercase; opacity: .55; }
+.header-badge { font-size: .7rem; letter-spacing: .08em; text-transform: uppercase; border: 1px solid rgba(255,255,255,.25); border-radius: 20px; padding: 4px 12px; opacity: .7; }
+
+/* === HERO BAND === */
+.hero {
+  background: var(--bg-2);
+  border-bottom: 1px solid var(--border);
+  padding: 28px max(24px, env(safe-area-inset-left, 0px));
+}
+.hero-inner { max-width: 1200px; margin: 0 auto; }
+.hero h1 { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 1.9rem; font-weight: 600; letter-spacing: -.01em; text-wrap: balance; }
+.hero h1 span { color: var(--gold); }
+.hero-meta { margin-top: 6px; font-size: .78rem; color: var(--fg-3); letter-spacing: .04em; }
+
+/* === SUMMARY STRIP === */
+.summary-strip {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 max(24px, env(safe-area-inset-left, 0px));
+}
+.summary-inner { max-width: 1200px; margin: 0 auto; display: flex; gap: 0; flex-wrap: wrap; }
+.sum-tile { flex: 1 1 140px; padding: 18px 20px; border-right: 1px solid var(--border); }
+.sum-tile:last-child { border-right: none; }
+.sum-label { font-size: .68rem; letter-spacing: .1em; text-transform: uppercase; color: var(--fg-3); margin-bottom: 6px; }
+.sum-val { font-size: 1.25rem; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--fg); }
+.sum-val.cash { color: var(--cash); }
+.sum-val.reinvest { color: var(--reinvest); }
+.sum-sub { font-size: .72rem; color: var(--fg-3); margin-top: 2px; }
+
+/* === MAIN LAYOUT === */
+main { max-width: 1200px; margin: 0 auto; padding: 32px 0 60px; }
+.silos { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+@media (max-width: 800px) { .silos { grid-template-columns: 1fr; } }
+
+/* === SILO === */
+.silo { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
+.silo-header { padding: 20px 22px 16px; border-bottom: 1px solid var(--border); }
+.silo-name { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 1.3rem; font-weight: 600; }
+.silo-accounts { font-size: .72rem; color: var(--fg-3); letter-spacing: .06em; margin-top: 2px; }
+
+/* colour accent bar */
+.silo.brenda .silo-header { border-top: 3px solid var(--accent-b); }
+.silo.michael .silo-header { border-top: 3px solid var(--accent-m); }
+.silo.brenda .silo-name { color: var(--accent-b); }
+.silo.michael .silo-name { color: var(--accent-m); }
+
+/* === FUND CARD === */
+.fund-card { padding: 18px 22px; border-bottom: 1px solid var(--border); }
+.fund-card:last-child { border-bottom: none; }
+.fund-row { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 12px; }
+.fund-name { font-weight: 500; font-size: .9rem; }
+.fund-detail { font-size: .75rem; color: var(--fg-3); margin-top: 1px; }
+.fund-dist { font-size: .88rem; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--fg); }
+.fund-dist-label { font-size: .68rem; color: var(--fg-3); text-align: right; margin-top: 1px; }
+
+/* slider */
+.slider-wrap { margin-top: 10px; }
+.slider-labels { display: flex; justify-content: space-between; font-size: .68rem; color: var(--fg-3); letter-spacing: .06em; text-transform: uppercase; margin-bottom: 6px; }
+input[type=range] {
+  width: 100%; appearance: none; height: 4px;
+  border-radius: 2px; background: var(--track); outline: none; cursor: pointer;
+}
+input[type=range]::-webkit-slider-thumb {
+  appearance: none; width: 18px; height: 18px; border-radius: 50%;
+  background: var(--gold); border: 2px solid var(--surface);
+  box-shadow: 0 1px 4px rgba(0,0,0,.25); cursor: pointer;
+}
+input[type=range]::-moz-range-thumb {
+  width: 18px; height: 18px; border-radius: 50%;
+  background: var(--gold); border: 2px solid var(--surface); cursor: pointer;
+}
+
+/* result row */
+.split-result { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+.split-chip {
+  flex: 1 1 120px; border-radius: 6px; padding: 8px 12px;
+  font-size: .78rem; font-variant-numeric: tabular-nums;
+}
+.split-chip.cash-chip { background: var(--cash-light); color: var(--cash); }
+.split-chip.reinvest-chip { background: var(--reinvest-light); color: var(--reinvest); }
+.split-chip-label { font-size: .66rem; letter-spacing: .08em; text-transform: uppercase; opacity: .8; margin-bottom: 2px; }
+.split-chip-val { font-size: 1rem; font-weight: 600; }
+
+/* prom note special */
+.prom-badge { font-size: .68rem; letter-spacing: .08em; text-transform: uppercase; border-radius: 4px; padding: 2px 7px; background: var(--accent-m-light); color: var(--accent-m); font-weight: 500; }
+
+/* silo totals */
+.silo-total { padding: 16px 22px; background: var(--bg-2); border-top: 1px solid var(--border); }
+.silo-total-row { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding: 3px 0; }
+.silo-total-label { font-size: .75rem; color: var(--fg-2); }
+.silo-total-val { font-size: .88rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+.silo-total-val.cash { color: var(--cash); }
+.silo-total-val.reinvest { color: var(--reinvest); }
+.silo-grand { border-top: 1px solid var(--border); margin-top: 8px; padding-top: 8px; }
+.silo-grand .silo-total-label { font-weight: 600; color: var(--fg); }
+.silo-grand .silo-total-val { font-size: 1.05rem; }
+
+/* === HOUSEHOLD TOTALS === */
+.household { max-width: 1200px; margin: 0 auto 40px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
+.household-header { padding: 16px 24px; background: var(--fg); color: var(--bg); }
+.household-header h2 { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 1.1rem; font-weight: 400; letter-spacing: .04em; }
+.household-header span { color: var(--gold); font-style: italic; }
+.household-body { display: flex; flex-wrap: wrap; gap: 0; }
+.hh-tile { flex: 1 1 160px; padding: 20px 24px; border-right: 1px solid var(--border); }
+.hh-tile:last-child { border-right: none; }
+.hh-label { font-size: .68rem; letter-spacing: .1em; text-transform: uppercase; color: var(--fg-3); margin-bottom: 8px; }
+.hh-val { font-size: 1.5rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+.hh-val.cash { color: var(--cash); }
+.hh-val.reinvest { color: var(--reinvest); }
+.hh-note { font-size: .72rem; color: var(--fg-3); margin-top: 4px; }
+
+/* === DRIP CALLOUT === */
+.drip-note {
+  margin: 0 22px 16px; padding: 10px 14px;
+  background: var(--reinvest-light); border-radius: 6px;
+  font-size: .75rem; color: var(--reinvest); line-height: 1.4;
+}
+
+/* === FOOTER === */
+footer {
+  border-top: 1px solid var(--border);
+  padding: 20px max(24px, env(safe-area-inset-left, 0px));
+  font-size: .7rem; color: var(--fg-3); line-height: 1.6;
+  padding-bottom: max(20px, env(safe-area-inset-bottom, 0px));
+}
+.footer-inner { max-width: 1200px; margin: 0 auto; }
+</style>
+
+<!-- GATE -->
+<div id="gate">
+  <div class="gate-box">
+    <div class="gate-wordmark">Clifton <em>Blake</em></div>
+    <div class="gate-sub">Distribution Scenario Planner</div>
+    <label class="gate-label" for="pw">Access Password</label>
+    <input class="gate-input" type="password" id="pw" placeholder="••••••••••" autocomplete="current-password">
+    <button class="gate-btn" onclick="checkPw()">Enter</button>
+    <div class="gate-err" id="gate-err"></div>
+  </div>
+</div>
+
+<!-- HEADER -->
+<header>
+  <div class="header-inner">
+    <div>
+      <div class="header-wordmark">Clifton <em>Blake</em></div>
+      <div class="header-tag">Distribution Scenario Planner</div>
+    </div>
+    <div class="header-badge">Advisor · Private</div>
+  </div>
+</header>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-inner">
+    <h1>Brenda &amp; Michael <span>Meloche</span></h1>
+    <div class="hero-meta">Accounts 1020 · 1199 · 102543 &nbsp;·&nbsp; Price date: October 1, 2026 &nbsp;·&nbsp; Report date: October 15, 2026</div>
+  </div>
+</div>
+
+<!-- SUMMARY STRIP -->
+<div class="summary-strip">
+  <div class="summary-inner">
+    <div class="sum-tile">
+      <div class="sum-label">Household Market Value</div>
+      <div class="sum-val" id="hh-mv">$1,570,876</div>
+      <div class="sum-sub">All eligible funds</div>
+    </div>
+    <div class="sum-tile">
+      <div class="sum-label">Monthly Cash</div>
+      <div class="sum-val cash" id="hh-cash">—</div>
+      <div class="sum-sub">At current settings</div>
+    </div>
+    <div class="sum-tile">
+      <div class="sum-label">Monthly Reinvesting</div>
+      <div class="sum-val reinvest" id="hh-drip">—</div>
+      <div class="sum-sub">At current settings</div>
+    </div>
+    <div class="sum-tile">
+      <div class="sum-label">Annual Cash Yield</div>
+      <div class="sum-val" id="hh-yield">—</div>
+      <div class="sum-sub">On total MV</div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<main>
+  <div class="silos">
+
+    <!-- BRENDA SILO -->
+    <div class="silo brenda">
+      <div class="silo-header">
+        <div class="silo-name">Brenda Meloche</div>
+        <div class="silo-accounts">Account 1020 · Open</div>
+      </div>
+
+      <!-- CBIG A -->
+      <div class="fund-card">
+        <div class="fund-row">
+          <div>
+            <div class="fund-name">CBIG A</div>
+            <div class="fund-detail">1,249.9509 units · $11.01 NAV · Fund 205</div>
+          </div>
+          <div style="text-align:right">
+            <div class="fund-dist">$72.91 / mo</div>
+            <div class="fund-dist-label">Currently reinvesting</div>
+          </div>
+        </div>
+        <div class="drip-note">DRIP: CBIG distributions reinvest as CB PR RE Trust A (CBRE) units per post-December 2023 election.</div>
+        <div class="slider-wrap">
+          <div class="slider-labels"><span>◀ Reinvest</span><span>Cash ▶</span></div>
+          <input type="range" min="0" max="100" value="0" id="b-cbig" oninput="update()">
+          <div class="split-result">
+            <div class="split-chip cash-chip"><div class="split-chip-label">Cash out</div><div class="split-chip-val" id="b-cbig-cash">$0.00</div></div>
+            <div class="split-chip reinvest-chip"><div class="split-chip-label">Reinvesting</div><div class="split-chip-val" id="b-cbig-drip">$72.91</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CBRE on CBRE -->
+      <div class="fund-card">
+        <div class="fund-row">
+          <div>
+            <div class="fund-name">CB PR RE Trust A (CBRE)</div>
+            <div class="fund-detail">246.0738 units · $11.01 NAV · Fund 210</div>
+          </div>
+          <div style="text-align:right">
+            <div class="fund-dist">$86.80 / mo</div>
+            <div class="fund-dist-label">Currently reinvesting</div>
+          </div>
+        </div>
+        <div class="slider-wrap">
+          <div class="slider-labels"><span>◀ Reinvest</span><span>Cash ▶</span></div>
+          <input type="range" min="0" max="100" value="0" id="b-cbre" oninput="update()">
+          <div class="split-result">
+            <div class="split-chip cash-chip"><div class="split-chip-label">Cash out</div><div class="split-chip-val" id="b-cbre-cash">$0.00</div></div>
+            <div class="split-chip reinvest-chip"><div class="split-chip-label">Reinvesting</div><div class="split-chip-val" id="b-cbre-drip">$86.80</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Brenda totals -->
+      <div class="silo-total">
+        <div class="silo-total-row"><span class="silo-total-label">Cash out</span><span class="silo-total-val cash" id="b-total-cash">$0.00</span></div>
+        <div class="silo-total-row"><span class="silo-total-label">Reinvesting</span><span class="silo-total-val reinvest" id="b-total-drip">$159.71</span></div>
+        <div class="silo-total-row silo-grand"><span class="silo-total-label">Total monthly distributions</span><span class="silo-total-val" id="b-total">$159.71</span></div>
+      </div>
+    </div>
+
+    <!-- MICHAEL SILO -->
+    <div class="silo michael">
+      <div class="silo-header">
+        <div class="silo-name">Michael Meloche</div>
+        <div class="silo-accounts">Accounts 1199 · 102543 · Open</div>
+      </div>
+
+      <!-- CBIG A (1199) -->
+      <div class="fund-card">
+        <div class="fund-row">
+          <div>
+            <div class="fund-name">CBIG A</div>
+            <div class="fund-detail">65,205.4332 units · $11.01 NAV · Acct 1199</div>
+          </div>
+          <div style="text-align:right">
+            <div class="fund-dist">$3,803.65 / mo</div>
+            <div class="fund-dist-label">Currently cash (DVC)</div>
+          </div>
+        </div>
+        <div class="slider-wrap">
+          <div class="slider-labels"><span>◀ Cash</span><span>Reinvest ▶</span></div>
+          <input type="range" min="0" max="100" value="0" id="m-cbig" oninput="update()">
+          <div class="split-result">
+            <div class="split-chip cash-chip"><div class="split-chip-label">Cash out</div><div class="split-chip-val" id="m-cbig-cash">$3,803.65</div></div>
+            <div class="split-chip reinvest-chip"><div class="split-chip-label">Reinvesting</div><div class="split-chip-val" id="m-cbig-drip">$0.00</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- EP2 Prom -->
+      <div class="fund-card">
+        <div class="fund-row">
+          <div>
+            <div class="fund-name">EP2 Promissory Note <span class="prom-badge">13% p.a.</span></div>
+            <div class="fund-detail">$250,000 principal · Acct 1199</div>
+          </div>
+          <div style="text-align:right">
+            <div class="fund-dist">$2,708.33 / mo</div>
+            <div class="fund-dist-label">Fixed — cash only</div>
+          </div>
+        </div>
+        <div style="margin-top:10px; padding: 8px 12px; background: var(--accent-m-light); border-radius:6px; font-size:.75rem; color:var(--fg-2);">
+          Promissory note interest is paid as cash. No reinvestment election applies.
+        </div>
+      </div>
+
+      <!-- CBRE (1199) -->
+      <div class="fund-card">
+        <div class="fund-row">
+          <div>
+            <div class="fund-name">CB PR RE Trust A (CBRE)</div>
+            <div class="fund-detail">50,036.1593 units · $11.01 NAV · Acct 1199</div>
+          </div>
+          <div style="text-align:right">
+            <div class="fund-dist">$2,903.39 / mo</div>
+            <div class="fund-dist-label">Currently reinvesting</div>
+          </div>
+        </div>
+        <div class="slider-wrap">
+          <div class="slider-labels"><span>◀ Reinvest</span><span>Cash ▶</span></div>
+          <input type="range" min="0" max="100" value="0" id="m-cbre1" oninput="update()">
+          <div class="split-result">
+            <div class="split-chip cash-chip"><div class="split-chip-label">Cash out</div><div class="split-chip-val" id="m-cbre1-cash">$0.00</div></div>
+            <div class="split-chip reinvest-chip"><div class="split-chip-label">Reinvesting</div><div class="split-chip-val" id="m-cbre1-drip">$2,903.39</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CBIG DRIP account (102543) -->
+      <div class="fund-card">
+        <div class="fund-row">
+          <div>
+            <div class="fund-name">CBIG A — DRIP Account</div>
+            <div class="fund-detail">34,285.6713 units · $11.01 NAV · Acct 102543</div>
+          </div>
+          <div style="text-align:right">
+            <div class="fund-dist">$2,000.00 / mo</div>
+            <div class="fund-dist-label">Currently reinvesting as CBRE</div>
+          </div>
+        </div>
+        <div class="drip-note">DRIP: CBIG distributions in account 102543 reinvest as CBRE units (~$2,000/mo). CBRE-on-CBRE distributions below are additional.</div>
+        <div class="slider-wrap">
+          <div class="slider-labels"><span>◀ Reinvest</span><span>Cash ▶</span></div>
+          <input type="range" min="0" max="100" value="0" id="m-cbig2" oninput="update()">
+          <div class="split-result">
+            <div class="split-chip cash-chip"><div class="split-chip-label">Cash out</div><div class="split-chip-val" id="m-cbig2-cash">$0.00</div></div>
+            <div class="split-chip reinvest-chip"><div class="split-chip-label">Reinvesting</div><div class="split-chip-val" id="m-cbig2-drip">$2,000.00</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CBRE on CBRE (102543) -->
+      <div class="fund-card">
+        <div class="fund-row">
+          <div>
+            <div class="fund-name">CB PR RE Trust A (CBRE) — DRIP Account</div>
+            <div class="fund-detail">2,644.4342 units · $11.01 NAV · Acct 102543</div>
+          </div>
+          <div style="text-align:right">
+            <div class="fund-dist">$142.91 / mo</div>
+            <div class="fund-dist-label">Currently reinvesting</div>
+          </div>
+        </div>
+        <div class="slider-wrap">
+          <div class="slider-labels"><span>◀ Reinvest</span><span>Cash ▶</span></div>
+          <input type="range" min="0" max="100" value="0" id="m-cbre2" oninput="update()">
+          <div class="split-result">
+            <div class="split-chip cash-chip"><div class="split-chip-label">Cash out</div><div class="split-chip-val" id="m-cbre2-cash">$0.00</div></div>
+            <div class="split-chip reinvest-chip"><div class="split-chip-label">Reinvesting</div><div class="split-chip-val" id="m-cbre2-drip">$142.91</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Michael totals -->
+      <div class="silo-total">
+        <div class="silo-total-row"><span class="silo-total-label">Cash out (incl. EP2 Prom fixed $2,708.33)</span><span class="silo-total-val cash" id="m-total-cash">$6,511.98</span></div>
+        <div class="silo-total-row"><span class="silo-total-label">Reinvesting</span><span class="silo-total-val reinvest" id="m-total-drip">$5,046.30</span></div>
+        <div class="silo-total-row silo-grand"><span class="silo-total-label">Total monthly distributions</span><span class="silo-total-val" id="m-total">$11,558.28</span></div>
+      </div>
+    </div>
+
+  </div><!-- /silos -->
+</main>
+
+<!-- HOUSEHOLD TOTALS -->
+<div class="household">
+  <div class="household-header"><h2>Household <span>Monthly Summary</span></h2></div>
+  <div class="household-body">
+    <div class="hh-tile">
+      <div class="hh-label">Total Cash Out</div>
+      <div class="hh-val cash" id="hh-cash-2">—</div>
+      <div class="hh-note">Brenda + Michael</div>
+    </div>
+    <div class="hh-tile">
+      <div class="hh-label">Total Reinvesting</div>
+      <div class="hh-val reinvest" id="hh-drip-2">—</div>
+      <div class="hh-note">Accumulating as units</div>
+    </div>
+    <div class="hh-tile">
+      <div class="hh-label">Total Monthly</div>
+      <div class="hh-val" id="hh-total">—</div>
+      <div class="hh-note">All distributions</div>
+    </div>
+    <div class="hh-tile">
+      <div class="hh-label">Annual Cash Run Rate</div>
+      <div class="hh-val" id="hh-annual">—</div>
+      <div class="hh-note">Cash distributions × 12</div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-inner">
+    This tool is for discussion purposes only and is provided by Clifton Blake Securities Ltd. (CBSL), an OSC-registered Exempt Market Dealer. Distribution amounts shown reflect current elections as of October 15, 2026 and are subject to change. Market values use NAV as of October 1, 2026. EP2 Promissory Note interest is based on $250,000 principal at 13% per annum. DRIP (Distribution Reinvestment Plan) elections apply where noted. This material does not constitute investment advice. Past distributions are not indicative of future results.
+  </div>
+</footer>
+
+<script>
+// === DATA ===
+const FUNDS = {
+  bCbig:  { id:'b-cbig',  total:72.91,   defaultCash:0,   fixed:false },
+  bCbre:  { id:'b-cbre',  total:86.80,   defaultCash:0,   fixed:false },
+  mCbig:  { id:'m-cbig',  total:3803.65, defaultCash:100, fixed:false }, // currently cash
+  mProm:  {                total:2708.33, defaultCash:100, fixed:true  }, // always cash
+  mCbre1: { id:'m-cbre1', total:2903.39, defaultCash:0,   fixed:false },
+  mCbig2: { id:'m-cbig2', total:2000.00, defaultCash:0,   fixed:false },
+  mCbre2: { id:'m-cbre2', total:142.91,  defaultCash:0,   fixed:false },
+};
+
+const TOTAL_MV = 13761.96 + 2709.27 + 717911.82 + 377485.24 + 29115.22 + 550898.11;
+// excludes EP2 Prom (promissory note, not unit-based MV)
+
+function fmt(n) {
+  return '$' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+function sliderVal(id) {
+  return parseInt(document.getElementById(id).value) / 100;
+}
+
+function update() {
+  // Brenda
+  const bCbigDrip = 72.91 * (1 - sliderVal('b-cbig'));
+  const bCbigCash = 72.91 - bCbigDrip;
+  const bCbreDrip = 86.80 * (1 - sliderVal('b-cbre'));
+  const bCbreCash = 86.80 - bCbreDrip;
+
+  document.getElementById('b-cbig-cash').textContent  = fmt(bCbigCash);
+  document.getElementById('b-cbig-drip').textContent  = fmt(bCbigDrip);
+  document.getElementById('b-cbre-cash').textContent  = fmt(bCbreCash);
+  document.getElementById('b-cbre-drip').textContent  = fmt(bCbreDrip);
+
+  const bCash = bCbigCash + bCbreCash;
+  const bDrip = bCbigDrip + bCbreDrip;
+  const bTotal = bCash + bDrip;
+  document.getElementById('b-total-cash').textContent = fmt(bCash);
+  document.getElementById('b-total-drip').textContent = fmt(bDrip);
+  document.getElementById('b-total').textContent      = fmt(bTotal);
+
+  // Michael
+  const mCbigDrip  = 3803.65 * sliderVal('m-cbig');
+  const mCbigCash  = 3803.65 - mCbigDrip;
+  const mPromCash  = 2708.33; // fixed
+  const mCbre1Drip = 2903.39 * (1 - sliderVal('m-cbre1'));
+  const mCbre1Cash = 2903.39 - mCbre1Drip;
+  const mCbig2Drip = 2000.00 * (1 - sliderVal('m-cbig2'));
+  const mCbig2Cash = 2000.00 - mCbig2Drip;
+  const mCbre2Drip = 142.91 * (1 - sliderVal('m-cbre2'));
+  const mCbre2Cash = 142.91 - mCbre2Drip;
+
+  document.getElementById('m-cbig-cash').textContent  = fmt(mCbigCash);
+  document.getElementById('m-cbig-drip').textContent  = fmt(mCbigDrip);
+  document.getElementById('m-cbre1-cash').textContent = fmt(mCbre1Cash);
+  document.getElementById('m-cbre1-drip').textContent = fmt(mCbre1Drip);
+  document.getElementById('m-cbig2-cash').textContent = fmt(mCbig2Cash);
+  document.getElementById('m-cbig2-drip').textContent = fmt(mCbig2Drip);
+  document.getElementById('m-cbre2-cash').textContent = fmt(mCbre2Cash);
+  document.getElementById('m-cbre2-drip').textContent = fmt(mCbre2Drip);
+
+  const mCash  = mCbigCash + mPromCash + mCbre1Cash + mCbig2Cash + mCbre2Cash;
+  const mDrip  = mCbigDrip + mCbre1Drip + mCbig2Drip + mCbre2Drip;
+  const mTotal = mCash + mDrip;
+  document.getElementById('m-total-cash').textContent = fmt(mCash);
+  document.getElementById('m-total-drip').textContent = fmt(mDrip);
+  document.getElementById('m-total').textContent      = fmt(mTotal);
+
+  // Household
+  const hhCash  = bCash + mCash;
+  const hhDrip  = bDrip + mDrip;
+  const hhTotal = hhCash + hhDrip;
+  const hhYield = (hhCash * 12 / TOTAL_MV * 100).toFixed(2) + '%';
+
+  document.getElementById('hh-cash').textContent   = fmt(hhCash);
+  document.getElementById('hh-drip').textContent   = fmt(hhDrip);
+  document.getElementById('hh-yield').textContent  = hhYield;
+  document.getElementById('hh-cash-2').textContent = fmt(hhCash);
+  document.getElementById('hh-drip-2').textContent = fmt(hhDrip);
+  document.getElementById('hh-total').textContent  = fmt(hhTotal);
+  document.getElementById('hh-annual').textContent = fmt(hhCash * 12);
+}
+
+// === PASSWORD ===
+function checkPw() {
+  const v = document.getElementById('pw').value;
+  if (v === 'Clifton') {
+    document.getElementById('gate').hidden = true;
+    update();
+  } else {
+    document.getElementById('gate-err').textContent = 'Incorrect password. Please try again.';
+  }
+}
+document.getElementById('pw').addEventListener('keydown', e => { if (e.key === 'Enter') checkPw(); });
+
+// run once to seed displays (gate hides it)
+update();
+</script>
