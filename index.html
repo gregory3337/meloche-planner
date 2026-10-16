@@ -62,6 +62,7 @@
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; }
+[hidden] { display: none !important; }
 
 body {
   background: var(--bg);
@@ -75,41 +76,6 @@ body {
   min-height: 100%;
 }
 
-/* === GATE === */
-#gate {
-  position: fixed; inset: 0; z-index: 100;
-  background: var(--bg);
-  display: flex; align-items: center; justify-content: center;
-}
-.gate-box {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 48px 40px;
-  width: min(400px, 90vw);
-  box-shadow: var(--shadow);
-  text-align: center;
-}
-.gate-wordmark { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 1.6rem; font-weight: 400; letter-spacing: .03em; color: var(--fg); margin-bottom: 4px; }
-.gate-wordmark em { font-style: italic; color: var(--gold); }
-.gate-sub { font-size: .75rem; letter-spacing: .12em; text-transform: uppercase; color: var(--fg-3); margin-bottom: 36px; }
-.gate-label { font-size: .7rem; letter-spacing: .1em; text-transform: uppercase; color: var(--fg-2); margin-bottom: 8px; display: block; text-align: left; }
-.gate-input {
-  width: 100%; padding: 12px 14px; border-radius: 7px;
-  border: 1px solid var(--border); background: var(--bg);
-  color: var(--fg); font-family: inherit; font-size: .95rem;
-  outline: none; transition: border-color .2s;
-}
-.gate-input:focus { border-color: var(--gold); }
-.gate-btn {
-  margin-top: 16px; width: 100%; padding: 13px;
-  background: var(--fg); color: var(--bg);
-  border: none; border-radius: 7px; font-family: inherit;
-  font-size: .85rem; font-weight: 500; letter-spacing: .06em;
-  text-transform: uppercase; cursor: pointer; transition: opacity .15s;
-}
-.gate-btn:hover { opacity: .85; }
-.gate-err { margin-top: 12px; font-size: .8rem; color: #c0392b; min-height: 18px; }
 
 /* === HEADER === */
 header {
@@ -249,18 +215,6 @@ footer {
 }
 .footer-inner { max-width: 1200px; margin: 0 auto; }
 </style>
-
-<!-- GATE -->
-<div id="gate">
-  <div class="gate-box">
-    <div class="gate-wordmark">Clifton <em>Blake</em></div>
-    <div class="gate-sub">Distribution Scenario Planner</div>
-    <label class="gate-label" for="pw">Access Password</label>
-    <input class="gate-input" type="password" id="pw" placeholder="••••••••••" autocomplete="current-password">
-    <button class="gate-btn" onclick="checkPw()">Enter</button>
-    <div class="gate-err" id="gate-err"></div>
-  </div>
-</div>
 
 <!-- HEADER -->
 <header>
@@ -611,18 +565,6 @@ function update() {
   document.getElementById('hh-total').textContent  = fmt(hhTotal);
   document.getElementById('hh-annual').textContent = fmt(hhCash * 12);
 }
-
-// === PASSWORD ===
-function checkPw() {
-  const v = document.getElementById('pw').value;
-  if (v === 'Clifton') {
-    document.getElementById('gate').hidden = true;
-    update();
-  } else {
-    document.getElementById('gate-err').textContent = 'Incorrect password. Please try again.';
-  }
-}
-document.getElementById('pw').addEventListener('keydown', e => { if (e.key === 'Enter') checkPw(); });
 
 // seed displays after DOM is fully ready
 if (document.readyState === 'loading') {
